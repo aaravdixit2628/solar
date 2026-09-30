@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bharat Solar Atlas</title>
+<style>
+:root{--bg:#fffaf0;--fg:#1d2433;--mut:#5d667a;--card:#fff;--bd:#e8dfcc;--ac:#e8830c;--ac2:#0b7a5a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161f;--fg:#eef0f5;--mut:#9aa3b8;--card:#1a202c;--bd:#2c3446;--ac:#ffa73d;--ac2:#3ecf9f}}
+:root[data-theme="dark"]{--bg:#12161f;--fg:#eef0f5;--mut:#9aa3b8;--card:#1a202c;--bd:#2c3446;--ac:#ffa73d;--ac2:#3ecf9f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+.w{max-width:1080px;margin:auto;padding:0 18px}
+header{padding:56px 0 28px}
+h1{font-size:clamp(2rem,6vw,3.4rem);line-height:1.1;margin:0 0 12px}
+h1 span{color:var(--ac)}
+h2{font-size:1.5rem;margin:40px 0 14px}
+p.lead{color:var(--mut);max-width:640px;font-size:1.1rem}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.g5{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px}
+.card h3{margin:4px 0 6px;font-size:1.05rem}
+.card p,.card li{color:var(--mut);font-size:.92rem;margin:4px 0}
+.card ul{padding-left:18px;margin:6px 0}
+.ph{font-size:.75rem;font-weight:700;color:var(--ac);letter-spacing:.06em;text-transform:uppercase}
+svg#map{width:100%;height:auto;max-height:620px;display:block;cursor:crosshair;border-radius:10px;background:var(--bg)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:8px 0}
+label.c{display:flex;gap:6px;align-items:center;font-size:.88rem;border:1px solid var(--bd);border-radius:99px;padding:5px 12px;background:var(--card);cursor:pointer}
+.bar{height:10px;border-radius:6px;background:linear-gradient(90deg,#3b4cc0,#7fb5e6,#f3e27a,#f39c3d,#c0321a);margin:6px 0 2px}
+.sc{display:flex;justify-content:space-between;font-size:.75rem;color:var(--mut)}
+.f{display:grid;gap:10px;grid-template-columns:1fr 1fr}
+.f label{font-size:.8rem;color:var(--mut);display:flex;flex-direction:column;gap:3px}
+input,select{font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--fg);width:100%}
+.out{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.k{background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px}
+.k b{display:block;font-size:1.25rem;color:var(--ac2)}
+.k small{color:var(--mut);font-size:.75rem}
+code{background:var(--bg);padding:2px 6px;border-radius:6px;font-size:.85rem;word-break:break-word}
+footer{color:var(--mut);font-size:.8rem;padding:30px 0 40px}
+@media(max-width:520px){.f,.out{grid-template-columns:1fr}}
+</style></head><body>
+<div class="w">
+<header>
+<div class="ph">India · Solar Potential Platform</div>
+<h1>Find the sun on your <span>roof, plot, or plant.</span></h1>
+<p class="lead">Explore solar irradiance across India, click any point for GHI, tilt and land suitability, then estimate system size, energy yield, subsidy and payback.</p>
+</header>
+
+<h2>Solar potential map</h2>
+<div class="grid g2" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1fr)">
+<div class="card">
+<div class="chips">
+<label class="c"><input type="checkbox" id="mHim"> Exclude high-altitude terrain</label>
+<label class="c"><input type="checkbox" id="mNE"> Exclude forest / hill zones</label>
+</div>
+<svg id="map" viewBox="0 0 620 650" role="img" aria-label="Heatmap of solar irradiance across India">
+<defs><clipPath id="cp"><polygon id="poly"/></clipPath>
+<pattern id="hp" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#222" fill-opacity=".55"/><line x1="0" y1="0" x2="0" y2="6" stroke="#fff" stroke-width="2"/></pattern></defs>
+<g clip-path="url(#cp)"><g id="cells"></g><polygon id="himP" fill="url(#hp)" display="none"/><polygon id="neP" fill="url(#hp)" display="none"/></g>
+<polygon id="outline" fill="none" stroke="var(--fg)" stroke-width="1.5"/>
+<g id="dots"></g><g id="pin"></g>
+</svg>
+<div class="bar"></div><div class="sc"><span>3.8</span><span>GHI kWh/m²/day</span><span>6.0</span></div>
+<p style="font-size:.78rem;color:var(--mut);margin:6px 0 0">Indicative values interpolated from representative city data (NSRDB / NASA POWER-style averages). Outline is simplified. Click the map to pick a location.</p>
+</div>
+
+<div class="card">
+<h3>Site report</h3>
+<div class="out" style="margin-top:6px">
+<div class="k"><small>Location</small><b id="rLoc" style="font-size:1rem">—</b></div>
+<div class="k"><small>GHI (kWh/m²/day)</small><b id="rGhi">—</b></div>
+<div class="k"><small>Optimal tilt</small><b id="rTilt">—</b></div>
+<div class="k"><small>Land suitability</small><b id="rLand" style="font-size:1rem">—</b></div>
+</div>
+<h3 style="margin-top:20px">Calculator</h3>
+<div class="f">
+<label>Segment<select id="seg"><option value="res">Residential</option><option value="com">Commercial</option><option value="utl">Utility-scale</option></select></label>
+<label>Size by<select id="by"><option value="area">Roof / land area</option><option value="bud">Budget</option></select></label>
+<label id="lA">Area (m²)<input id="area" type="number" value="30" min="1"></label>
+<label id="lB" style="display:none">Budget (₹)<input id="bud" type="number" value="150000" min="1000"></label>
+<label>Panel efficiency (%)<input id="eff" type="number" value="20" step=".5"></label>
+<label>Performance ratio<input id="pr" type="number" value="0.78" step=".01"></label>
+<label>Tariff (₹/kWh)<input id="tar" type="number" value="7" step=".1"></label>
+<label>Cost (₹/kWp)<input id="cpx" type="number" value="55000" step="1000"></label>
+<label>Loan interest (%)<input id="rate" type="number" value="8.5" step=".1"></label>
+<label>Tenure (years)<input id="ten" type="number" value="10"></label>
+</div>
+<div class="out">
+<div class="k"><small>System size</small><b id="oKw">—</b></div>
+<div class="k"><small>Daily energy</small><b id="oDay">—</b></div>
+<div class="k"><small>Annual energy</small><b id="oYr">—</b></div>
+<div class="k"><small>Annual savings</small><b id="oSav">—</b></div>
+<div class="k"><small>Subsidy (PM Surya Ghar)</small><b id="oSub">—</b></div>
+<div class="k"><small>Payback</small><b id="oPay">—</b></div>
+<div class="k"><small>Loan EMI (80% financed)</small><b id="oEmi">—</b></div>
+<div class="k"><small>Net CAPEX</small><b id="oCap">—</b></div>
+</div>
+<p style="font-size:.75rem;color:var(--mut)">Daily kWh = GHI × area × efficiency × PR. Subsidy: ₹30,000/kW for first 2 kW, ₹18,000 for the 3rd kW, capped at ₹78,000 (residential only). Estimates only; check your DISCOM net-metering rules.</p>
+</div>
+</div>
+
+<h2>Build roadmap</h2>
+<div class="grid g5">
+<div class="card"><div class="ph">Phase 1 · Weeks 1–3</div><h3>Requirements & Data</h3><ul><li>GHI, DNI, DHI from NSRDB, NASA POWER or Solargis</li><li>GeoJSON/Shapefiles: country to pin-code (Bhuvan, OSM)</li><li>SRTM DEM for slope/aspect; land-use layers</li></ul></div>
+<div class="card"><div class="ph">Phase 2 · Weeks 4–6</div><h3>Architecture & Stack</h3><ul><li>React / Next.js with Leaflet, Mapbox GL or OpenLayers</li><li>FastAPI/Django with pvlib, rasterio, geopandas</li><li>PostgreSQL + PostGIS; GeoServer or TiTiler</li></ul></div>
+<div class="card"><div class="ph">Phase 3 · Weeks 7–11</div><h3>Core Features</h3><ul><li>Interactive heatmap</li><li>Point-and-click calculator by map, address or pincode</li><li>Constraint masks for farmland, forests, water, terrain</li></ul></div>
+<div class="card"><div class="ph">Phase 4 · Weeks 12–14</div><h3>Policy & Finance</h3><ul><li>State DISCOM net-metering tariffs</li><li>PM Surya Ghar: Muft Bijli Yojana</li><li>Loan, CAPEX and OPEX models for all segments</li></ul></div>
+<div class="card"><div class="ph">Phase 5 · Weeks 15–16</div><h3>Test & Launch</h3><ul><li>Vector tiles (MVT) and Cloud-Optimized GeoTIFF</li><li>Validate against NIWE and plant data</li><li>AWS/GCP with Cloudflare CDN</li></ul></div>
+</div>
+<footer>Bharat Solar Atlas · prototype with indicative data, not for investment decisions.</footer>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const C=[["Jaisalmer",26.9,70.9,5.9],["Jodhpur",26.3,73,5.8],["Bhuj",23.2,69.7,5.7],["Ahmedabad",23,72.6,5.6],["Delhi",28.6,77.2,5.2],["Mumbai",19.1,72.9,5.3],["Pune",18.5,73.9,5.5],["Hyderabad",17.4,78.5,5.5],["Bengaluru",13,77.6,5.4],["Chennai",13.1,80.3,5.3],["Kochi",10,76.3,5],["Nagpur",21.1,79.1,5.4],["Bhopal",23.3,77.4,5.4],["Lucknow",26.8,80.9,5],["Patna",25.6,85.1,4.9],["Kolkata",22.6,88.4,4.8],["Guwahati",26.1,91.7,4.4],["Shillong",25.6,91.9,4.1],["Srinagar",34.1,74.8,4.6],["Leh",34.2,77.6,5.6],["Shimla",31.1,77.2,4.7],["Itanagar",27.1,93.6,4.0]];
+const P=(lo,la)=>[(lo-68)*20,(37-la)*21];
+const INV=(x,y)=>[x/20+68,37-y/21];
+const pts=str=>str.map(([a,b])=>P(a,b).join(",")).join(" ");
+const IN=[[74,37],[77,35.5],[79,34],[78,32.5],[79,31],[81,30],[80,28.5],[84,27.5],[88,27],[89,26.8],[92,27],[95,28.5],[97,28],[96,26],[94,24],[93,22],[92,23],[91,25],[89,25],[89,22],[87,21.5],[85,19.5],[82,17],[80,15],[80,13],[79.5,10.5],[78,8.3],[77,8],[76,10],[75,12.5],[73.5,16],[72.8,19],[72.8,21],[70,21],[69,22.5],[68.5,23.5],[70,24.5],[71,25],[70,27],[72,28.5],[74,30],[74.5,32],[74,34]];
+const HIM=[[73,37.5],[80,37.5],[82,30.5],[88,28],[96,29.5],[96,28.2],[90,27.3],[84,28],[80,29.6],[77,31],[75,32.5]];
+const NE=[[89,27.5],[97.5,29],[97.5,22],[92,21.5],[91.5,23.5],[90,24.5],[89.2,26]];
+$("poly").setAttribute("points",pts(IN));$("outline").setAttribute("points",pts(IN));
+$("himP").setAttribute("points",pts(HIM));$("neP").setAttribute("points",pts(NE));
+function ghi(lo,la){let n=0,d=0;for(const c of C){const r=(lo-c[2])**2+(la-c[1])**2+.05;const w=1/(r*r);n+=w*c[3];d+=w}return n/d}
+const stops=[[59,76,192],[127,181,230],[243,226,122],[243,156,61],[192,50,26]];
+function col(g){let t=Math.max(0,Math.min(1,(g-3.8)/2.2))*4,i=Math.min(3,Math.floor(t)),f=t-i;return"rgb("+stops[i].map((v,k)=>Math.round(v+(stops[i+1][k]-v)*f)).join(",")+")"}
+let h="";for(let x=0;x<620;x+=10)for(let y=0;y<650;y+=10){const [lo,la]=INV(x+5,y+5);h+=`<rect x="${x}" y="${y}" width="10" height="10" fill="${col(ghi(lo,la))}"/>`}
+$("cells").innerHTML=h;
+$("dots").innerHTML=C.filter(c=>["Jaisalmer","Delhi","Mumbai","Bengaluru","Chennai","Kolkata","Guwahati","Srinagar","Ahmedabad","Hyderabad"].includes(c[0])).map(c=>{const[x,y]=P(c[2],c[1]);return`<circle cx="${x}" cy="${y}" r="3" fill="var(--fg)"/><text x="${x+6}" y="${y+4}" font-size="11" fill="var(--fg)" stroke="var(--bg)" stroke-width="3" paint-order="stroke">${c[0]}</text>`}).join("");
+$("mHim").onchange=e=>$("himP").setAttribute("display",e.target.checked?"":"none");
+$("mNE").onchange=e=>$("neP").setAttribute("display",e.target.checked?"":"none");
+function inPoly(lo,la,poly){let r=false;for(let i=0,j=poly.length-1;i<poly.length;j=i++){const[a,b]=poly[i],[c,d]=poly[j];if((b>la)!=(d>la)&&lo<(c-a)*(la-b)/(d-b)+a)r=!r}return r}
+let cur={g:5.4,lat:23};
+$("map").addEventListener("click",e=>{const s=$("map"),r=s.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*620,y=(e.clientY-r.top)/r.height*650;const[lo,la]=INV(x,y);
+if(!inPoly(lo,la,IN)){$("rLoc").textContent="Outside India";return}
+const g=ghi(lo,la);cur={g,lat:la};
+let near=C.reduce((a,c)=>((c[2]-lo)**2+(c[1]-la)**2<(a[2]-lo)**2+(a[1]-la)**2)?c:a);
+$("pin").innerHTML=`<circle cx="${x}" cy="${y}" r="7" fill="none" stroke="var(--fg)" stroke-width="2.5"/><circle cx="${x}" cy="${y}" r="2.5" fill="var(--fg)"/>`;
+const him=inPoly(lo,la,HIM),ne=inPoly(lo,la,NE);
+$("rLoc").textContent=`${la.toFixed(1)}°N ${lo.toFixed(1)}°E · near ${near[0]}`;
+$("rGhi").textContent=g.toFixed(2);
+$("rTilt").textContent=Math.round(0.76*la+3.1)+"° south-facing";
+$("rLand").textContent=him?"Restricted: high altitude":ne?"Caution: forest / hills":"Suitable";
+calc()});
+const n=id=>parseFloat($(id).value)||0,R=v=>"₹"+Math.round(v).toLocaleString("en-IN");
+function calc(){
+const seg=$("seg").value,eff=n("eff")/100,pr=n("pr"),cpx=n("cpx"),tar=n("tar");
+$("lA").style.display=$("by").value=="area"?"":"none";$("lB").style.display=$("by").value=="bud"?"":"none";
+let kw,area;
+if($("by").value=="area"){area=n("area");kw=area*eff}else{kw=n("bud")/cpx;area=kw/eff}
+const day=cur.g*area*eff*pr,yr=day*365,sav=yr*tar;
+let sub=0;if(seg=="res"){const k=Math.min(kw,3);sub=Math.min(78000,Math.min(k,2)*30000+Math.max(0,k-2)*18000)}
+const cap=kw*cpx,net=cap-sub;
+const opex=cap*(seg=="utl"?.01:.005),net_sav=sav-opex;
+const i=n("rate")/1200,N=n("ten")*12,L=net*.8;
+const emi=i?L*i/(1-Math.pow(1+i,-N)):L/N;
+$("oKw").textContent=kw.toFixed(2)+" kWp";
+$("oDay").textContent=day.toFixed(1)+" kWh";
+$("oYr").textContent=Math.round(yr).toLocaleString("en-IN")+" kWh";
+$("oSav").textContent=R(net_sav);
+$("oSub").textContent=seg=="res"?R(sub):"N/A";
+$("oPay").textContent=net_sav>0?(net/net_sav).toFixed(1)+" yrs":"—";
+$("oEmi").textContent=R(emi)+"/mo";
+$("oCap").textContent=R(net);
+}
+document.querySelectorAll("input,select").forEach(e=>e.addEventListener("input",calc));
+calc();
+</script></body></html>
